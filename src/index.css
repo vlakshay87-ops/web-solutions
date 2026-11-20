@@ -1,0 +1,212 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --ws-bg: #07080c;
+    --ws-surface: #0d1018;
+    --ws-surface-elevated: #121623;
+    --ws-border: rgba(255, 255, 255, 0.08);
+    --ws-border-strong: rgba(255, 255, 255, 0.16);
+    --ws-text: #f2f4f8;
+    --ws-text-muted: #949ba8;
+    --ws-text-subtle: #646b78;
+    --ws-accent: #4f6bff;
+    --ws-accent-soft: rgba(79, 107, 255, 0.14);
+    --ws-accent-glow: rgba(79, 107, 255, 0.35);
+    --ws-violet: #7c5cff;
+    --ws-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  html {
+    background-color: var(--ws-bg);
+    color: var(--ws-text);
+    font-family: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    scroll-behavior: smooth;
+    overflow-x: clip;
+  }
+
+  body {
+    background-color: var(--ws-bg);
+    color: var(--ws-text);
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: "Bricolage Grotesque", "Plus Jakarta Sans", sans-serif;
+    text-wrap: balance;
+  }
+
+  .font-mono-code {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  }
+}
+
+/* Subtle architectural grid and ambient studio grain */
+.ws-grid-bg {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+.ws-noise-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.045'/%3E%3C/svg%3E");
+  pointer-events: none;
+}
+
+/* Scroll reveal transition (fast, restrained, GPU-composited) */
+.ws-reveal {
+  opacity: 0;
+  transform: translate3d(0, 18px, 0);
+  filter: blur(4px);
+  transition:
+    opacity 0.65s var(--ws-ease),
+    transform 0.65s var(--ws-ease),
+    filter 0.65s var(--ws-ease);
+  will-change: opacity, transform, filter;
+}
+
+.ws-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  filter: blur(0);
+}
+
+/* Interactive mouse-tracking card surface */
+.ws-interactive-card {
+  position: relative;
+  background-color: var(--ws-surface);
+  border: 1px solid var(--ws-border);
+  transition:
+    transform 220ms var(--ws-ease),
+    border-color 220ms var(--ws-ease),
+    background-color 220ms var(--ws-ease);
+}
+
+.ws-interactive-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(
+    420px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(79, 107, 255, 0.12),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 240ms var(--ws-ease);
+  pointer-events: none;
+}
+
+.ws-interactive-card:hover {
+  transform: translate3d(0, -3px, 0);
+  border-color: rgba(255, 255, 255, 0.17);
+  background-color: #101420;
+}
+
+.ws-interactive-card:hover::before {
+  opacity: 1;
+}
+
+/* Subtle animated light pulse along SVG stroke */
+@keyframes wsTraceDash {
+  0% {
+    stroke-dashoffset: 240;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.ws-trace-line {
+  stroke-dasharray: 48 192;
+  animation: wsTraceDash 4.5s linear infinite;
+}
+
+/* Gentle floating motion for hero layers & WhatsApp button */
+@keyframes wsGentleFloat {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+.ws-float-slow {
+  animation: wsGentleFloat 6s ease-in-out infinite;
+}
+
+.ws-float-delayed {
+  animation: wsGentleFloat 7.2s ease-in-out 1.4s infinite;
+}
+
+/* Subtle footer glow line animation */
+@keyframes wsFooterSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+.ws-footer-glow-sweep {
+  animation: wsFooterSweep 7s ease-in-out infinite;
+}
+
+/* Animated nav link underline */
+.ws-nav-link {
+  position: relative;
+}
+
+.ws-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -4px;
+  height: 1px;
+  background: linear-gradient(90deg, #4f6bff, #93a7ff);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 220ms var(--ws-ease);
+}
+
+.ws-nav-link:hover::after,
+.ws-nav-link[data-active="true"]::after {
+  transform: scaleX(1);
+}
+
+/* Respect reduced motion globally */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .ws-reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+
+  .ws-trace-line,
+  .ws-float-slow,
+  .ws-float-delayed,
+  .ws-footer-glow-sweep {
+    animation: none !important;
+  }
+
+  .ws-interactive-card,
+  .ws-interactive-card::before,
+  .ws-nav-link::after {
+    transition: none !important;
+  }
+}
