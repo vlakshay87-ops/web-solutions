@@ -5,6 +5,7 @@ import {Footer} from './components/Footer';
 import {Hero} from './components/Hero';
 import {Navbar} from './components/Navbar';
 import {ProcessSection} from './components/ProcessSection';
+import {ScrollProgressBar} from './components/ScrollProgressBar';
 import {ServicesSection} from './components/ServicesSection';
 import {ShowcaseSection} from './components/ShowcaseSection';
 import {TrustStrip} from './components/TrustStrip';
@@ -30,6 +31,8 @@ export default function App() {
 
   return (
     <div className="relative min-h-screen bg-[#07080C] text-[#F2F4F8]">
+      <ScrollProgressBar />
+
       {/* Subtle full-page studio grain overlay */}
       <div
         aria-hidden="true"
