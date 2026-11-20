@@ -13,9 +13,11 @@ import {
   getWhatsAppUrl,
 } from '../data/studioData';
 import {useScrollReveal} from '../hooks/useScrollReveal';
+import {ToastVariant} from './ToastViewport';
 
 interface ContactSectionProps {
   preselectedNeed?: string;
+  onNotify: (variant: ToastVariant, title: string, description: string) => void;
 }
 
 interface FormValues {
@@ -35,9 +37,46 @@ interface FormErrors {
 
 /**
  * Modular submission handler structured for Netlify Forms, Formspree,
- * EmailJS, or a custom backend endpoint.
+ * EmailJS, or a custom backend endpoint (VITE_CONTACT_ENDPOINT).
  */
-async function submitEnquiry(values: FormValues): Promise<{ok: boolean}> {
+async function submitEnquiry(
+  values: FormValues
+): Promise<{ok: boolean; error?: string}> {
+  const customEndpoint = import.meta.env.VITE_CONTACT_ENDPOINT as
+    | string
+    | undefined;
+
+  if (customEndpoint) {
+    try {
+      const response = await fetch(customEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          name: values.name.trim(),
+          businessName: values.businessName.trim(),
+          phone: values.phone.trim(),
+          need: values.need,
+          message: values.message.trim(),
+        }),
+      });
+      if (!response.ok) {
+        return {
+          ok: false,
+          error: 'Could not send your enquiry right now. Please try again or use WhatsApp.',
+        };
+      }
+      return {ok: true};
+    } catch {
+      return {
+        ok: false,
+        error: 'Network error while sending your enquiry. Please check your connection or use WhatsApp.',
+      };
+    }
+  }
+
   const encodedBody = new URLSearchParams({
     'form-name': 'contact',
     name: values.name.trim(),
@@ -59,14 +98,17 @@ async function submitEnquiry(values: FormValues): Promise<{ok: boolean}> {
       return {ok: true};
     }
   } catch {
-    // Fallback handled smoothly below for local preview / non-Netlify hosts
+    // Fallback handled smoothly below for local preview / static hosts
   }
 
   await new Promise((resolve) => setTimeout(resolve, 420));
   return {ok: true};
 }
 
-export function ContactSection({preselectedNeed}: ContactSectionProps) {
+export function ContactSection({
+  preselectedNeed,
+  onNotify,
+}: ContactSectionProps) {
   const {ref, isVisible} = useScrollReveal<HTMLElement>(0.1);
   const [values, setValues] = useState<FormValues>({
     name: '',
@@ -109,14 +151,42 @@ export function ContactSection({preselectedNeed}: ContactSectionProps) {
     e.preventDefault();
     const validationErrors = validate();
     setErrors(validationErrors);
-    if (Object.keys(validationErrors).length > 0) return;
+
+    if (Object.keys(validationErrors).length > 0) {
+      onNotify(
+        'error',
+        'Error',
+        'Please complete the required fields before submitting your enquiry.'
+      );
+      return;
+    }
 
     setSubmitting(true);
-    const result = await submitEnquiry(values);
-    setSubmitting(false);
-
-    if (result.ok) {
-      setSubmitted(true);
+    try {
+      const result = await submitEnquiry(values);
+      if (result.ok) {
+        setSubmitted(true);
+        onNotify(
+          'success',
+          'Success',
+          `Your enquiry for a ${values.need} has been received. We will reach out shortly.`
+        );
+      } else {
+        onNotify(
+          'error',
+          'Error',
+          result.error ||
+            'Unable to submit your enquiry. Please try again or message us on WhatsApp.'
+        );
+      }
+    } catch {
+      onNotify(
+        'error',
+        'Error',
+        'An unexpected error occurred. Please try again or reach out via WhatsApp.'
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
